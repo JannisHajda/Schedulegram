@@ -1,5 +1,5 @@
 # Schedulegram
-Tooling that **automates** your Instagram uploads via the Instagram Creator Studio implemented in NodeJS using the Puppeteer module.
+Tool that **automates** your Instagram uploads via the Instagram Creator Studio implemented in NodeJS using the Puppeteer module.
 
 ## Installation💻
 ```
