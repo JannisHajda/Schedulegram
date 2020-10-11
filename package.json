@@ -6,7 +6,10 @@
   "author": "Jannis Hajda <48177119+jannishajda@users.noreply.github.com>",
   "license": "MIT",
   "dependencies": {
-    "dotenv": "^8.2.0",
-    "puppeteer": "^2.0.0"
+    "dotenv": "latest",
+    "puppeteer": "latest"
+  },
+  "devDependencies": {
+    "prettier": "^2.1.2"
   }
 }

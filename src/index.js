@@ -1,33 +1,23 @@
 const Schedulegram = require("./core/schedulegram");
-const dotenv = require("dotenv").config();
 
 (async () => {
-  let schedulegram = new Schedulegram(
-    (email = "jannis.hajda@protonmail.com"),
-    (password = "vP15@p#AG@i3ynW42pjY"),
-    (multipleAccounts = true)
-  );
-  await schedulegram.initPuppeteer();
-  await schedulegram.login();
-  await schedulegram.schedulePosts([
+
+  let posts = [
     {
-      account: "pupwear.store",
-      description: "Test 1",
-      file: "C:/Users/janni/Documents/GitHub/schedulegram/test.jpg",
+      account: "For which account do you want to schedule the post?",
+      description: "Enter your description here",
+      file: "Enter your img-src here.",
       release: {
-        date: "28.11.2019",
-        time: "18:15"
-      }
-    },
-    {
-      account: "shototd",
-      description: "Test 2",
-      file: "C:/Users/janni/Documents/GitHub/schedulegram/test.jpg",
-      release: {
-        date: "29.11.2019",
+        date: "28.11.2020",
         time: "18:15"
       }
     }
-  ]);
-  await schedulegram.close();
+  ]
+
+  const schedulegram = new Schedulegram(
+      (email = "ENTER YOUR MAIL"),
+      (password = "ENTER YOUR PASSWORD"),
+      (multipleAccounts=true),
+      (posts=posts)
+  );
 })();

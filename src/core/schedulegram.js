@@ -1,151 +1,167 @@
-const puppeteer = require("puppeteer");
+const puppetter = require("puppeteer");
+const sleep = require("util").promisify(setTimeout);
+const fs = require("fs");
 
-class Schedulegram {
-  constructor(email = "", password = "", multipleAccounts = false) {
+class Schedlugram {
+  constructor(email = "", password = "", multipleAccounts = false, posts = []) {
     this.email = email;
     this.password = password;
+    this.posts = posts;
     this.multipleAccounts = multipleAccounts;
+
+    this.config = JSON.parse(fs.readFileSync("src/core/config.json"));
+
+    this.initPuppeteer();
   }
 
   async initPuppeteer() {
-    this.browser = await puppeteer.launch({
+    this.browser = await puppetter.launch({
       headless: false,
-      args: ["--lang=en-GB"]
+      args: ["--lang=en-GB"],
     });
 
     this.page = await this.browser.newPage();
+    this.login();
   }
 
   async login() {
-    await this.page.goto("https://www.facebook.com/creatorstudio/", {
-      waitUntil: "networkidle2"
+    let button;
+
+    await this.page.goto(this.config.loginURL, {
+      waitUntil: "networkidle2",
     });
 
-    /* Click "Log In or Sign Up" button */
-    let loginButton = await this.page.$('a[type="button"');
-    await loginButton.click();
+    button = (await this.page.$x(this.config.selectors.facebookLoginBtn))[0];
+    await button.click({ delay: this.config.delays.clickDelay });
 
     await this.page.waitForNavigation({ waitUntil: "networkidle2" });
 
-    /* Enter login data */
-    await this.page.type('input[name="email"]', this.email, { delay: 128 });
-    await this.page.type('input[name="pass"]', this.password, { delay: 128 });
+    // Check for cookie consent
+    let cookieConsent = await this.page.$(this.config.selectors.cookieConsent);
 
-    /* Click "Log In" button */
-    loginButton = await this.page.$('button[name="login"]');
-    await loginButton.click();
+    if (cookieConsent) {
+      button = await this.page.$(this.config.selectors.acceptCookiesBtn);
+      await button.click({ delay: this.config.delays.clickDelay });
+    }
+
+    // Enter Login Data
+    await this.page.type(this.config.selectors.emailInput, this.email, {
+      delay: this.config.delays.typeDelay,
+    });
+    await this.page.type(this.config.selectors.passwordInput, this.password, {
+      delay: this.config.delays.typeDelay,
+    });
+
+    // Click Login Btn
+    await this.page.click(this.config.selectors.loginBtn, {
+      delay: this.config.delays.clickDelay,
+    });
 
     await this.page.waitForNavigation({ waitUntil: "networkidle2" });
+
+    await this.page.click(this.config.selectors.instagramIcon, {
+      delay: this.config.delays.clickDelay,
+    });
+
+    this.schedulePosts();
   }
 
-  async schedulePosts(posts) {
-    /* Click on Instagram tab */
-    let instagramButton = await this.page.$(
-      'div[id="media_manager_chrome_bar_instagram_icon"]'
-    );
-    await instagramButton.click();
+  async schedulePosts() {
+    let button;
 
-    await this.page.waitFor('a[data-testid="create_post_button"]');
-    await this.page.waitFor(500);
+    for (let post of this.posts) {
+      await this.page.reload({ waitUntil: "networkidle2" });
 
-    for (let post of posts) {
-      /* Click on "Create post" button */
-      let createPostButton = await this.page.$(
-        'a[data-testid="create_post_button"]'
-      );
-      await createPostButton.click();
+      await this.page.waitForXPath(this.config.selectors.createPostBtn);
 
-      await this.page.waitFor('span[data-testid="instagram_feed_button"]');
-      await this.page.waitFor(500);
+      // Click create Post Button
+      button = (await this.page.$x(this.config.selectors.createPostBtn))[0];
+      await button.click({ delay: this.config.delays.clickDelay });
 
-      /* Click on "Instagram-feed" */
-      let feedButton = await this.page.$(
-        'span[data-testid="instagram_feed_button"]'
-      );
-      await feedButton.click();
+      // Click Instagram Feed
+      await this.page.waitForXPath(this.config.selectors.instagramFeedBtn);
+
+      button = (await this.page.$x(this.config.selectors.instagramFeedBtn))[0];
+      await button.click({ delay: this.config.delays.clickDelay });
 
       if (this.multipleAccounts) {
-        await this.page.waitForXPath("/html/body/div[5]/div/div/div[3]");
-        await this.page.waitFor(500);
+        await this.page.waitForXPath(this.config.selectors.accountList);
 
-        /* Select instagram account */
-        let accounts = (
-          await this.page.$x("/html/body/div[5]/div/div/div[3]")
+        let accountList = (
+          await this.page.$x(this.config.selectors.accountList)
         )[0];
-        let accountButton = (
-          await accounts.$x(
-            `/html/body/div[5]/div/div/div[3]/div/span/div[2]/span/div[contains(text(), "${post.account}")]`
-          )
+
+        button = (
+          await accountList.$x(`div[contains(., "${post.account}")]`)
         )[0];
-        await accountButton.click();
+        await button.click({ delay: this.config.delays.clickDelay });
       }
 
-      await this.page.waitFor('div[aria-autocomplete="list"]');
-      await this.page.waitFor(500);
+      // Add description
+      await this.page.waitForSelector(this.config.selectors.descriptionInput);
 
-      /* Add description */
-      let descriptionInput = await this.page.$('div[aria-autocomplete="list"]');
-      await descriptionInput.type(post.description, { delay: 128 });
-
-      /* Add image file */
-      let addContentButton = await this.page.$(
-        'span[data-testid="primary_add_content_button"]'
+      let descriptionInput = await this.page.$(
+        this.config.selectors.descriptionInput
       );
-      await addContentButton.click();
+      await descriptionInput.type(post.description, {
+        delay: this.config.delays.typeDelay,
+      });
 
-      await this.page.waitFor('input[accept="video/*, image/*"]');
-      await this.page.waitFor(500);
+      // Add Image
+      button = (await this.page.$x(this.config.selectors.addImageBtn))[0];
+      await button.click({ delay: this.config.delays.clickDelay });
 
-      let fileInput = await this.page.$('input[accept="video/*, image/*"]');
-      await fileInput.uploadFile(post.file);
+      await this.page.waitForSelector(this.config.selectors.imageInput);
 
-      /* Click arrow button */
-      let arrowButton = (await this.page.$$('button[aria-haspopup="true"]'))[2];
-      await arrowButton.click();
+      let imageInput = await this.page.$(this.config.selectors.imageInput);
+      await imageInput.uploadFile(post.file);
 
-      await this.page.waitForXPath(
-        '//button[contains(text(), "dropdown menu item")]'
+      // Schedule Post
+      button = (await this.page.$x(this.config.selectors.expandBtn))[0];
+      await button.click({ delay: this.config.delays.clickDelay });
+
+      button = (await this.page.$x(this.config.selectors.schedulePostBtn))[0];
+      await button.click({ delay: this.config.delays.clickDelay });
+
+      // Add Release Date
+      let releaseDateInput = await this.page.$(
+        this.config.selectors.releaseDateInput
       );
-      await this.page.waitFor(500);
+      await releaseDateInput.type(post.release.date, {
+        delay: this.config.delays.typeDelay,
+      });
 
-      /* Click schedule post button */
-      let schedulePostButton = (await this.page.$$('div[role="checkbox"]'))[1];
-      await schedulePostButton.click();
-      await this.page.waitFor(500);
-
-      await this.page.waitFor('input[placeholder="tt.mm.jjjj"]');
-
-      /* Add release date */
-      let dateInput = await this.page.$('input[placeholder="tt.mm.jjjj"]');
-      await dateInput.type(post.release.date, { delay: 128 });
-      await this.page.waitFor(500);
-
-      /* Add release time */
+      // Add Release Time
       let releaseTime = post.release.time.split(":");
-      let timeInput = await this.page.$$('input[role="spinbutton"]');
-      let hourInput = timeInput[0];
-      let minuteInput = timeInput[1];
 
-      await hourInput.type(releaseTime[0], { delay: 128 });
-      await this.page.waitFor(500);
-
-      await minuteInput.type(releaseTime[1], { delay: 128 });
-      await this.page.waitFor(500);
-
-      /* Click publish button */
-      let publishButton = await this.page.$(
-        'button[data-testid="publish_button"]'
+      let releaseTimeInput = await this.page.$$(
+        this.config.selectors.releaseTimeInput
       );
-      await publishButton.click();
+      let hourInput = releaseTimeInput[0];
+      let minuteInput = releaseTimeInput[1];
 
-      await this.page.waitFor(10000);
+      await hourInput.type(releaseTime[0], {
+        delay: this.config.delays.typeDelay,
+      });
+      await this.page.waitForTimeout(100);
+      await minuteInput.type(releaseTime[1], {
+        delay: this.config.delays.typeDelay,
+      });
+
+      // Publish
+      button = (await this.page.$x(this.config.selectors.releaseBtn))[0];
+      await button.click(this.config.delays.clickDelay);
+
+      await sleep(this.config.delays.postDelay);
     }
+
+    this.closePuppeteer();
   }
 
-  async close() {
-    await this.page.close();
-    await this.browser.close();
+  async closePuppeteer() {
+    this.page.close();
+    this.browser.close();
   }
 }
 
-module.exports = Schedulegram;
+module.exports = Schedlugram;

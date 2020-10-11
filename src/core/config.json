@@ -1,0 +1,29 @@
+{
+  "loginURL": "https://www.facebook.com/creatorstudio/",
+  "headless": false,
+  "delays": {
+    "typeDelay": 25,
+    "clickDelay": 75,
+    "postDelay": 15000
+  },
+  "selectors": {
+    "facebookLoginBtn": "/html/body/div[1]/div[2]/div/div[2]/div/div/div/div[2]/div/div/span/div/div/div",
+    "cookieConsent": "div[data-testid=\"cookie-policy-banner\"]",
+    "acceptCookiesBtn": "button[data-testid=\"cookie-policy-banner-accept\"]",
+    "emailInput": "input[name=\"email\"]",
+    "passwordInput": "input[name=\"pass\"]",
+    "loginBtn": "button#loginbutton",
+    "instagramIcon": "div#media_manager_chrome_bar_instagram_icon",
+    "createPostBtn": "/html/body/div[1]/div/div[2]/div/div/div[2]/div[1]/div[1]/div/div[1]/div/span/div/div/div[2]",
+    "instagramFeedBtn": "/html/body/div[4]/div[1]/div[1]/div/div/div[2]/div[2]/ul/li[1]",
+    "accountList": "/html/body/div[5]/div/div/div/div[3]",
+    "descriptionInput": "div[aria-autocomplete=\"list\"]",
+    "addImageBtn": "/html/body/div[5]/div/div/div/div[2]/div[1]/div/div[5]/div/div",
+    "imageInput": "input[accept=\"video/*, image/*\"]",
+    "expandBtn": "/html/body/div[5]/div/div/div/div[3]/div[2]/div/button",
+    "schedulePostBtn": "/html/body/div[8]/div/div/div/div/div[2]/div/div/div",
+    "releaseDateInput": "input[placeholder=\"tt.mm.jjjj\"]",
+    "releaseTimeInput": "input[role=\"spinbutton\"]",
+    "releaseBtn": "/html/body/div[5]/div/div/div/div[3]/div[2]/button/div/div"
+  }
+}
